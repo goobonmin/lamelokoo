@@ -1,25 +1,50 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import './App.css';
-import ds from "./image/ds.png"
-import logo from "./image/logo.png"
-import go from "./image/go.png"
-import g from "./image/g.png"
-import q from "./image/q.png"
-import f from "./image/f.png"
+import ds from "./image/ds.png";
+import logo from "./image/logo.png";
+import go from "./image/go.png";
+import g from "./image/g.png";
+import q from "./image/q.png";
+import f from "./image/f.png";
+import zxc from "./image/zxc.png";
+import qwe from "./image/qwe.png";
+import sdfxc from "./image/sdfxc.png";
+
+const Modal = ({ isOpen, onClose, title, desc, onClickOutside }) => {
+  if (!isOpen) return null;
+  return (
+    <div className="modal" onClick={onClickOutside}>
+      <div className="modal-content">
+        <span className="close" onClick={onClose}>&times;</span>
+        <h2>{title}</h2>
+        <p>{desc}</p>
+      </div>
+    </div>
+  );
+};
+
+const SectionHeader = ({ title }) => (
+  <h2 className="section-header">{title}</h2>
+);
 
 const App = () => {
   const [activeModal, setActiveModal] = useState(null);
   const [activeNav, setActiveNav] = useState('home');
   const [enlargedImage, setEnlargedImage] = useState(null);
-  // New state for posts
   const [posts, setPosts] = useState([]);
   const [newPost, setNewPost] = useState({ title: '', content: '' });
+  const [trips, setTrips] = useState([]);
+  const [newTrip, setNewTrip] = useState({ destination: '', startDate: '', endDate: '', notes: '' });
+  const [editingTrip, setEditingTrip] = useState(null);
+  const [favorites, setFavorites] = useState([]);
 
   const homeRef = useRef(null);
   const destinationsRef = useRef(null);
   const aboutRef = useRef(null);
   const contactRef = useRef(null);
   const boardRef = useRef(null);
+  const plannerRef = useRef(null);
+  const favoritesRef = useRef(null);
 
   const destinations = [
     {
@@ -48,29 +73,44 @@ const App = () => {
     },
     {
       id: 'londonModal',
-      title: '',
-      desc: '',
-      image: q,
+      title: 'London',
+      desc: 'Discover historic landmarks and vibrant culture.',
+      image: zxc,
       modalTitle: 'London Details',
       modalDesc: 'London features Big Ben, Buckingham Palace, and diverse neighborhoods. Enjoy afternoon tea and West End shows.'
     },
     {
       id: 'berlinModal',
-      title: '',
-      desc: '',
-      image: g,
+      title: 'Berlin',
+      desc: 'Experience rich history and a thriving arts scene.',
+      image: qwe,
       modalTitle: 'Berlin Details',
       modalDesc: 'Berlin\'s history shines at the Berlin Wall and Brandenburg Gate, with a thriving arts scene and beer gardens.'
     },
     {
       id: 'athensModal',
-      title: '',
-      desc: '',
-      image: f,
+      title: 'Athens',
+      desc: 'Visit ancient ruins and enjoy authentic Greek cuisine.',
+      image: sdfxc,
       modalTitle: 'Athens Details',
       modalDesc: 'Athens is home to the Acropolis and Parthenon, with lively plazas and authentic Greek souvlaki.'
     }
   ];
+
+  useEffect(() => {
+    const savedTrips = JSON.parse(localStorage.getItem('travelPlans')) || [];
+    const savedFavorites = JSON.parse(localStorage.getItem('favorites')) || [];
+    setTrips(savedTrips);
+    setFavorites(savedFavorites);
+  }, []);
+
+  useEffect(() => {
+    localStorage.setItem('travelPlans', JSON.stringify(trips));
+  }, [trips]);
+
+  useEffect(() => {
+    localStorage.setItem('favorites', JSON.stringify(favorites));
+  }, [favorites]);
 
   const scrollToSection = (ref, id) => {
     if (ref.current) {
@@ -82,23 +122,12 @@ const App = () => {
     }
   };
 
-  const openModal = (id) => {
-    setActiveModal(id);
-  };
+  const openModal = (id) => setActiveModal(id);
+  const closeModal = () => setActiveModal(null);
 
-  const closeModal = () => {
-    setActiveModal(null);
-  };
+  const enlargeImage = (image) => setEnlargedImage(image);
+  const closeEnlargedImage = () => setEnlargedImage(null);
 
-  const enlargeImage = (image) => {
-    setEnlargedImage(image);
-  };
-
-  const closeEnlargedImage = () => {
-    setEnlargedImage(null);
-  };
-
-  // New functions for handling posts
   const handlePostChange = (e) => {
     const { name, value } = e.target;
     setNewPost((prev) => ({ ...prev, [name]: value }));
@@ -106,29 +135,71 @@ const App = () => {
 
   const handlePostSubmit = (e) => {
     e.preventDefault();
-    if (newPost.title && newPost.content) {
-      setPosts((prev) => [
-        ...prev,
-        { id: Date.now(), title: newPost.title, content: newPost.content, date: new Date().toLocaleString() }
-      ]);
-      setNewPost({ title: '', content: '' });
-    }
+    if (!newPost.title || !newPost.content) return;
+    setPosts((prev) => [
+      ...prev,
+      { id: Date.now(), title: newPost.title, content: newPost.content, date: new Date().toLocaleString() }
+    ]);
+    setNewPost({ title: '', content: '' });
   };
 
   const handleDeletePost = (id) => {
     setPosts((prev) => prev.filter((post) => post.id !== id));
   };
 
+  const handleTripChange = (e) => {
+    const { name, value } = e.target;
+    setNewTrip((prev) => ({ ...prev, [name]: value }));
+  };
+
+  const handleTripSubmit = (e) => {
+    e.preventDefault();
+    if (!newTrip.destination || !newTrip.startDate || !newTrip.endDate) return;
+    if (editingTrip) {
+      setTrips((prev) =>
+        prev.map((trip) =>
+          trip.id === editingTrip.id ? { ...trip, ...newTrip } : trip
+        )
+      );
+      setEditingTrip(null);
+    } else {
+      setTrips((prev) => [...prev, { id: Date.now(), ...newTrip }]);
+    }
+    setNewTrip({ destination: '', startDate: '', endDate: '', notes: '' });
+  };
+
+  const handleEditTrip = (trip) => {
+    setNewTrip(trip);
+    setEditingTrip(trip);
+  };
+
+  const handleDeleteTrip = (id) => {
+    setTrips((prev) => prev.filter((trip) => trip.id !== id));
+  };
+
+  const toggleFavorite = (destTitle) => {
+    setFavorites((prev) =>
+      prev.includes(destTitle)
+        ? prev.filter((title) => title !== destTitle)
+        : [...prev, destTitle]
+    );
+  };
+
+  const getFavoriteDestinations = () => 
+    destinations.filter((dest) => favorites.includes(dest.title));
+
   return (
     <div>
       <header>
-        <img src={logo} alt="Travel Vista Logo" className="logo" style={{ borderRadius: '10px' }} />
+        <img src={logo} alt="Travel Vista Logo" className="logo" />
         <nav>
-          <a className={activeNav === 'home' ? 'active' : ''} onClick={() => scrollToSection(homeRef, 'home')}>Home</a>
-          <a className={activeNav === 'destinations' ? 'active' : ''} onClick={() => scrollToSection(destinationsRef, 'destinations')}>Destinations</a>
-          <a className={activeNav === 'about' ? 'active' : ''} onClick={() => scrollToSection(aboutRef, 'about')}>About</a>
-          <a className={activeNav === 'contact' ? 'active' : ''} onClick={() => scrollToSection(contactRef, 'contact')}>Contact</a>
-          <a className={activeNav === 'board' ? 'active' : ''} onClick={() => scrollToSection(boardRef, 'board')}>Board</a>
+          <a className={activeNav === 'home' ? 'active' : ''} onClick={() => scrollToSection(homeRef, 'home')} aria-label="Home">Home</a>
+          <a className={activeNav === 'destinations' ? 'active' : ''} onClick={() => scrollToSection(destinationsRef, 'destinations')} aria-label="Destinations">Destinations</a>
+          <a className={activeNav === 'favorites' ? 'active' : ''} onClick={() => scrollToSection(favoritesRef, 'favorites')} aria-label="Favorites">Favorites</a>
+          <a className={activeNav === 'about' ? 'active' : ''} onClick={() => scrollToSection(aboutRef, 'about')} aria-label="About">About</a>
+          <a className={activeNav === 'contact' ? 'active' : ''} onClick={() => scrollToSection(contactRef, 'contact')} aria-label="Contact">Contact</a>
+          <a className={activeNav === 'board' ? 'active' : ''} onClick={() => scrollToSection(boardRef, 'board')} aria-label="Discussion Board">Board</a>
+          <a className={activeNav === 'planner' ? 'active' : ''} onClick={() => scrollToSection(plannerRef, 'planner')} aria-label="Travel Planner">Travel Planner</a>
         </nav>
       </header>
       <section className="hero" ref={homeRef}>
@@ -138,72 +209,123 @@ const App = () => {
         {destinations.map((dest) => (
           <div key={dest.id} className="destination-card">
             <img src={dest.image} alt={dest.title} onClick={() => { openModal(dest.id); enlargeImage(dest.image); }} />
+            <div className="overlay">
+              <h3>{dest.title}</h3>
+              <button
+                onClick={() => toggleFavorite(dest.title)}
+                className={`favorite-btn ${favorites.includes(dest.title) ? 'favorited' : ''}`}
+                aria-label={favorites.includes(dest.title) ? `Remove ${dest.title} from favorites` : `Add ${dest.title} to favorites`}
+              >
+                {favorites.includes(dest.title) ? '❤️ Remove Favorite' : '♡ Add to Favorites'}
+              </button>
+            </div>
             <h3>{dest.title}</h3>
             <p>{dest.desc}</p>
+            <button
+              onClick={() => toggleFavorite(dest.title)}
+              className={`favorite-btn ${favorites.includes(dest.title) ? 'favorited' : ''}`}
+              aria-label={favorites.includes(dest.title) ? `Remove ${dest.title} from favorites` : `Add ${dest.title} to favorites`}
+            >
+              {favorites.includes(dest.title) ? '❤️ Remove Favorite' : '♡ Add to Favorites'}
+            </button>
           </div>
         ))}
       </section>
       {destinations.map((dest) => (
-        activeModal === dest.id && (
-          <div key={dest.id} className="modal" style={{ display: 'block' }} onClick={(e) => { if (e.target.className === 'modal') closeModal(); }}>
-            <div className="modal-content">
-              <span className="close" onClick={closeModal}>&times;</span>
-              <h2>{dest.modalTitle}</h2>
-              <p>{dest.modalDesc}</p>
-            </div>
-          </div>
-        )
+        <Modal
+          key={dest.id}
+          isOpen={activeModal === dest.id}
+          onClose={closeModal}
+          title={dest.modalTitle}
+          desc={dest.modalDesc}
+          onClickOutside={(e) => { if (e.target.className === 'modal') closeModal(); }}
+        />
       ))}
-      <section id="about" ref={aboutRef}>
-        <h2 style={{ textAlign: 'center', padding: '2rem', fontFamily: "'Montserrat', sans-serif", color: '#1a3c5e' }}>About Us</h2>
-        <p style={{ maxWidth: '800px', margin: '0 auto', padding: '0 2rem 2rem', color: '#555' }}>Travel Vista is your guide to unforgettable adventures, offering inspiration and tips for exploring the world’s most beautiful destinations.</p>
+      <section id="favorites" ref={favoritesRef} className="favorites-section">
+        <SectionHeader title="My Favorites" />
+        {favorites.length === 0 ? (
+          <p className="no-content">No favorites yet. Add some from the Destinations section!</p>
+        ) : (
+          <div className="destinations">
+            {getFavoriteDestinations().map((dest) => (
+              <div key={dest.id} className="destination-card">
+                <img src={dest.image} alt={dest.title} onClick={() => { openModal(dest.id); enlargeImage(dest.image); }} />
+                <div className="overlay">
+                  <h3>{dest.title}</h3>
+                  <button
+                    onClick={() => toggleFavorite(dest.title)}
+                    className="favorite-btn favorited"
+                    aria-label={`Remove ${dest.title} from favorites`}
+                  >
+                    ❤️ Remove Favorite
+                  </button>
+                </div>
+                <h3>{dest.title}</h3>
+                <p>{dest.desc}</p>
+                <button
+                  onClick={() => toggleFavorite(dest.title)}
+                  className="favorite-btn favorited"
+                  aria-label={`Remove ${dest.title} from favorites`}
+                >
+                  ❤️ Remove Favorite
+                </button>
+              </div>
+            ))}
+          </div>
+        )}
       </section>
-      <section id="contact" ref={contactRef}>
-        <h2 style={{ textAlign: 'center', padding: '2rem', fontFamily: "'Montserrat', sans-serif", color: '#1a3c5e' }}>Contact Us</h2>
-        <p style={{ maxWidth: '800px', margin: '0 auto', padding: '0 2rem 2rem', color: '#555' }}>Get in touch at info@travelvista.com for travel inquiries or collaborations.</p>
+      <section id="about" ref={aboutRef} className="about-section">
+        <SectionHeader title="About Us" />
+        <p className="section-text">Travel Vista is your guide to unforgettable adventures, offering inspiration and tips for exploring the world’s most beautiful destinations.</p>
       </section>
-      <section id="board" ref={boardRef} style={{ padding: '2rem', maxWidth: '800px', margin: '0 auto' }}>
-        <h2 style={{ textAlign: 'center', padding: '2rem', fontFamily: "'Montserrat', sans-serif", color: '#1a3c5e' }}>Travel Discussion Board</h2>
-        <div className="post-form" style={{ marginBottom: '2rem' }}>
-          <input
-            type="text"
-            name="title"
-            value={newPost.title}
-            onChange={handlePostChange}
-            placeholder="Post Title"
-            className="w-full p-2 mb-2 border rounded"
-            style={{ fontFamily: "'Montserrat', sans-serif" }}
-          />
-          <textarea
-            name="content"
-            value={newPost.content}
-            onChange={handlePostChange}
-            placeholder="Share your travel experience..."
-            className="w-full p-2 mb-2 border rounded"
-            rows="4"
-            style={{ fontFamily: "'Montserrat', sans-serif" }}
-          ></textarea>
+      <section id="contact" ref={contactRef} className="contact-section">
+        <SectionHeader title="Contact Us" />
+        <p className="section-text">Get in touch at <a href="mailto:info@travelvista.com" className="contact-link">info@travelvista.com</a> for travel inquiries or collaborations.</p>
+      </section>
+      <section id="board" ref={boardRef} className="board-section">
+        <SectionHeader title="Travel Discussion Board" />
+        <div className="post-form">
+          <div className="form-group">
+            <input
+              type="text"
+              name="title"
+              value={newPost.title}
+              onChange={handlePostChange}
+              placeholder="Post Title"
+              className="form-input"
+            />
+          </div>
+          <div className="form-group">
+            <textarea
+              name="content"
+              value={newPost.content}
+              onChange={handlePostChange}
+              placeholder="Share your travel experience..."
+              className="form-input"
+              rows="4"
+            ></textarea>
+          </div>
           <button
             onClick={handlePostSubmit}
-            className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
-            style={{ fontFamily: "'Montserrat', sans-serif" }}
+            className="submit-btn"
+            aria-label="Submit post"
           >
             Submit Post
           </button>
         </div>
         <div className="posts-list">
           {posts.length === 0 ? (
-            <p style={{ color: '#555', textAlign: 'center' }}>No posts yet. Be the first to share!</p>
+            <p className="no-content">No posts yet. Be the first to share!</p>
           ) : (
             posts.map((post) => (
-              <div key={post.id} className="post" style={{ border: '1px solid #ddd', padding: '1rem', marginBottom: '1rem', borderRadius: '8px' }}>
-                <h3 style={{ fontFamily: "'Montserrat', sans-serif", color: '#1a3c5e' }}>{post.title}</h3>
-                <p style={{ color: '#555' }}>{post.content}</p>
-                <p style={{ color: '#777', fontSize: '0.9rem' }}>Posted on: {post.date}</p>
+              <div key={post.id} className="post">
+                <h3>{post.title}</h3>
+                <p>{post.content}</p>
+                <p className="post-date">Posted on: {post.date}</p>
                 <button
                   onClick={() => handleDeletePost(post.id)}
-                  className="bg-red-600 text-white px-3 py-1 rounded hover:bg-red-700"
-                  style={{ fontFamily: "'Montserrat', sans-serif" }}
+                  className="delete-btn"
+                  aria-label={`Delete post: ${post.title}`}
                 >
                   Delete
                 </button>
@@ -212,13 +334,100 @@ const App = () => {
           )}
         </div>
       </section>
+      <section id="planner" ref={plannerRef} className="planner-section">
+        <SectionHeader title="Travel Planner" />
+        <div className="trip-form">
+          <div className="form-group">
+            <select
+              name="destination"
+              value={newTrip.destination}
+              onChange={handleTripChange}
+              className="form-input"
+            >
+              <option value="">Select Destination</option>
+              {destinations.map((dest) => (
+                <option key={dest.id} value={dest.title}>{dest.title}</option>
+              ))}
+            </select>
+          </div>
+          <div className="form-group">
+            <input
+              type="date"
+              name="startDate"
+              value={newTrip.startDate}
+              onChange={handleTripChange}
+              className="form-input"
+            />
+          </div>
+          <div className="form-group">
+            <input
+              type="date"
+              name="endDate"
+              value={newTrip.endDate}
+              onChange={handleTripChange}
+              className="form-input"
+            />
+          </div>
+          <div className="form-group">
+            <textarea
+              name="notes"
+              value={newTrip.notes}
+              onChange={handleTripChange}
+              placeholder="Add notes for your trip..."
+              className="form-input"
+              rows="4"
+            ></textarea>
+          </div>
+          <button
+            onClick={handleTripSubmit}
+            className="submit-btn"
+            aria-label={editingTrip ? 'Update trip' : 'Add trip'}
+          >
+            {editingTrip ? 'Update Trip' : 'Add Trip'}
+          </button>
+        </div>
+        <div className="trips-list">
+          {trips.length === 0 ? (
+            <p className="no-content">No trips planned yet. Start planning your adventure!</p>
+          ) : (
+            trips.map((trip) => (
+              <div key={trip.id} className="trip">
+                <h3>{trip.destination}</h3>
+                <p>From: {trip.startDate} To: {trip.endDate}</p>
+                <p>{trip.notes || 'No notes'}</p>
+                <div className="trip-actions">
+                  <button
+                    onClick={() => handleEditTrip(trip)}
+                    className="edit-btn"
+                    aria-label={`Edit trip to ${trip.destination}`}
+                  >
+                    Edit
+                  </button>
+                  <button
+                    onClick={() => handleDeleteTrip(trip.id)}
+                    className="delete-btn"
+                    aria-label={`Delete trip to ${trip.destination}`}
+                  >
+                    Delete
+                  </button>
+                </div>
+              </div>
+            ))
+          )}
+        </div>
+      </section>
       <footer>
+        <div className="social-icons">
+          <a href="#" aria-label="Facebook"><i className="fab fa-facebook-f"></i></a>
+          <a href="#" aria-label="Twitter"><i className="fab fa-twitter"></i></a>
+          <a href="#" aria-label="Instagram"><i className="fab fa-instagram"></i></a>
+        </div>
         <p>&copy; 2025 Travel Vista. All rights reserved.</p>
       </footer>
       {enlargedImage && (
-        <div className="enlarged-image" style={{ position: 'fixed', top: 0, left: 0, width: '100%', height: '100%', background: 'rgba(0,0,0,0.8)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000 }} onClick={closeEnlargedImage}>
-          <img src={enlargedImage} alt="Enlarged" style={{ maxWidth: '90%', maxHeight: '90%', borderRadius: '10px' }} />
-          <span className="close" style={{ position: 'absolute', top: '20px', right: '20px', color: '#fff', fontSize: '30px', cursor: 'pointer' }} onClick={closeEnlargedImage}>&times;</span>
+        <div className="enlarged-image" onClick={closeEnlargedImage}>
+          <img src={enlargedImage} alt="Enlarged" />
+          <span className="close" onClick={closeEnlargedImage}>&times;</span>
         </div>
       )}
     </div>
