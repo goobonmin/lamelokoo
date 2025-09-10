@@ -4,7 +4,6 @@ import cors from "cors"
 import multer from "multer" //파일 업로드를 위해서 필요한 미들웨어
 import path from "path"     //경로 관련 유틸리티 (확장자추출, 경로 결합)       
 import { fileURLToPath } from "url" // __filename, __dirname  
-import fs from "fs"     //파일 시스템 접근
 import bcrypt from "bcrypt"
 
 
@@ -27,7 +26,6 @@ fs.mkdirSync(uploadDir, {recursive:true})
 
 
 //파일업로드된 폴더를 프론트엔드에서 직접 접근할 수 있도록  static 미들웨어로 설정
-app.use("/images", express.static(uploadDir))
 
 
 //프론트엔드에서 서비스 요청할 때 자동 수행되어 
@@ -43,17 +41,12 @@ const storage = multer.diskStorage({
 
 
 // Multer  인스턴스 생성
-const upload = multer({storage});
-
-
-//////=========회원가입 처리 ===============//////////////////////////////////////////////////////////
 
 
 // 커넥션 풀 설정
 const pool = mysql.createPool({
     host:"database-1.cdwqyssi0je0.ap-northeast-2.rds.amazonaws.com",
     user:"user_ex",
-    password:"1234",
     port:"3306",
     database:"db_ex",
     connectionLimit:10,

@@ -37,6 +37,7 @@ const App = () => {
   const [newTrip, setNewTrip] = useState({ destination: '', startDate: '', endDate: '', notes: '' });
   const [editingTrip, setEditingTrip] = useState(null);
   const [favorites, setFavorites] = useState([]);
+  const [selectedSongDestination, setSelectedSongDestination] = useState('');
 
   const homeRef = useRef(null);
   const destinationsRef = useRef(null);
@@ -45,6 +46,7 @@ const App = () => {
   const boardRef = useRef(null);
   const plannerRef = useRef(null);
   const favoritesRef = useRef(null);
+  const songsRef = useRef(null);
 
   const destinations = [
     {
@@ -97,11 +99,47 @@ const App = () => {
     }
   ];
 
+  // Song recommendations with corrected, valid GIF URLs
+  const songRecommendations = {
+    Paris: [
+      { title: 'La Vie en Rose', artist: 'Édith Piaf', gif: 'https://i.gifer.com/95na.gif' },
+      { title: 'Non, Je Ne Regrette Rien', artist: 'Édith Piaf', gif: 'https://i.gifer.com/95na.gif' },
+      { title: 'Sous le Ciel de Paris', artist: 'Yves Montand', gif: 'https://i.gifer.com/95na.gif' }
+    ],
+    Rome: [
+      { title: 'Volare', artist: 'Domenico Modugno', gif: 'https://media.giphy.com/media/2t9ybdQO3tffbegOuM/giphy.gif' },
+      { title: 'Arrivederci Roma', artist: 'Dean Martin', gif: 'https://media.giphy.com/media/2t9ybdQO3tffbegOuM/giphy.gif' },
+      { title: 'Funiculì Funiculà', artist: 'Traditional', gif: 'https://media.giphy.com/media/2t9ybdQO3tffbegOuM/giphy.gif' }
+    ],
+    Barcelona: [
+      { title: 'Barcelona', artist: 'Freddie Mercury & Montserrat Caballé', gif: 'https://media.giphy.com/media/TH1DuxbRmMquQxDCj3/giphy.gif' },
+      { title: 'Viva La Vida', artist: 'Coldplay', gif: 'https://media.giphy.com/media/TH1DuxbRmMquQxDCj3/giphy.gif' },
+      { title: 'Bamboleo', artist: 'Gipsy Kings', gif: 'https://media.giphy.com/media/TH1DuxbRmMquQxDCj3/giphy.gif' }
+    ],
+    London: [
+      { title: 'London Calling', artist: 'The Clash', gif: 'https://media.giphy.com/media/VEgfqKIEwl1InUdayp/giphy.gif' },
+      { title: 'Waterloo Sunset', artist: 'The Kinks', gif: 'https://media.giphy.com/media/VEgfqKIEwl1InUdayp/giphy.gif' },
+      { title: 'Sweet Caroline', artist: 'Neil Diamond', gif: 'https://media.giphy.com/media/VEgfqKIEwl1InUdayp/giphy.gif' }
+    ],
+    Berlin: [
+      { title: 'Heroes', artist: 'David Bowie', gif: 'https://media.giphy.com/media/2t9ybdQO3tffbegOuM/giphy.gif' },
+      { title: '99 Luftballons', artist: 'Nena', gif: 'https://media.giphy.com/media/2t9ybdQO3tffbegOuM/giphy.gif' },
+      { title: 'Born to Die in Berlin', artist: 'Ramones', gif: 'https://media.giphy.com/media/2t9ybdQO3tffbegOuM/giphy.gif' }
+    ],
+    Athens: [
+      { title: 'Zorba’s Dance', artist: 'Mikis Theodorakis', gif: 'https://i.gifer.com/95na.gif' },
+      { title: 'Never on Sunday', artist: 'Manos Hatzidakis', gif: 'https://i.gifer.com/95na.gif' },
+      { title: 'Siko Horepse Syrtaki', artist: 'Traditional', gif: 'https://i.gifer.com/95na.gif' }
+    ]
+  };
+
   useEffect(() => {
     const savedTrips = JSON.parse(localStorage.getItem('travelPlans')) || [];
     const savedFavorites = JSON.parse(localStorage.getItem('favorites')) || [];
+    const savedSongDestination = localStorage.getItem('selectedSongDestination') || '';
     setTrips(savedTrips);
     setFavorites(savedFavorites);
+    setSelectedSongDestination(savedSongDestination);
   }, []);
 
   useEffect(() => {
@@ -111,6 +149,10 @@ const App = () => {
   useEffect(() => {
     localStorage.setItem('favorites', JSON.stringify(favorites));
   }, [favorites]);
+
+  useEffect(() => {
+    localStorage.setItem('selectedSongDestination', selectedSongDestination);
+  }, [selectedSongDestination]);
 
   const scrollToSection = (ref, id) => {
     if (ref.current) {
@@ -156,7 +198,7 @@ const App = () => {
     e.preventDefault();
     if (!newTrip.destination || !newTrip.startDate || !newTrip.endDate) return;
     if (editingTrip) {
-      setTrips((prev) =>
+      setTrips((prev) => 
         prev.map((trip) =>
           trip.id === editingTrip.id ? { ...trip, ...newTrip } : trip
         )
@@ -188,6 +230,10 @@ const App = () => {
   const getFavoriteDestinations = () => 
     destinations.filter((dest) => favorites.includes(dest.title));
 
+  const handleSongDestinationChange = (e) => {
+    setSelectedSongDestination(e.target.value);
+  };
+
   return (
     <div>
       <header>
@@ -200,6 +246,7 @@ const App = () => {
           <a className={activeNav === 'contact' ? 'active' : ''} onClick={() => scrollToSection(contactRef, 'contact')} aria-label="Contact">Contact</a>
           <a className={activeNav === 'board' ? 'active' : ''} onClick={() => scrollToSection(boardRef, 'board')} aria-label="Discussion Board">Board</a>
           <a className={activeNav === 'planner' ? 'active' : ''} onClick={() => scrollToSection(plannerRef, 'planner')} aria-label="Travel Planner">Travel Planner</a>
+          <a className={activeNav === 'songs' ? 'active' : ''} onClick={() => scrollToSection(songsRef, 'songs')} aria-label="Song Recommendations">Songs</a>
         </nav>
       </header>
       <section className="hero" ref={homeRef}>
@@ -273,6 +320,44 @@ const App = () => {
             ))}
           </div>
         )}
+      </section>
+      <section id="songs" ref={songsRef} className="songs-section">
+        <SectionHeader title="Song Recommendations" />
+        <div className="song-form">
+          <div className="form-group">
+            <select
+              name="songDestination"
+              value={selectedSongDestination}
+              onChange={handleSongDestinationChange}
+              className="form-input"
+            >
+              <option value="">Select Destination</option>
+              {destinations.map((dest) => (
+                <option key={dest.id} value={dest.title}>{dest.title}</option>
+              ))}
+            </select>
+          </div>
+        </div>
+        <div className="songs-list">
+          {selectedSongDestination && songRecommendations[selectedSongDestination] ? (
+            songRecommendations[selectedSongDestination].map((song, index) => (
+              <div key={index} className="song">
+                <img 
+                  src={song.gif} 
+                  alt={`GIF for ${song.title} by ${song.artist}`} 
+                  className="song-gif"
+                  onClick={() => enlargeImage(song.gif)}
+                />
+                <div className="song-details">
+                  <h3>{song.title}</h3>
+                  <p>Artist: {song.artist}</p>
+                </div>
+              </div>
+            ))
+          ) : (
+            <p className="no-content">Select a destination to see song recommendations!</p>
+          )}
+        </div>
       </section>
       <section id="about" ref={aboutRef} className="about-section">
         <SectionHeader title="About Us" />
