@@ -1,11 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import './App.css';
-import ds from "./image/ds.png";
 import logo from "./image/logo.png";
 import go from "./image/go.png";
-import g from "./image/g.png";
-import q from "./image/q.png";
-import f from "./image/f.png";
 import zxc from "./image/zxc.png";
 import qwe from "./image/qwe.png";
 import sdfxc from "./image/sdfxc.png";
@@ -38,6 +34,9 @@ const App = () => {
   const [editingTrip, setEditingTrip] = useState(null);
   const [favorites, setFavorites] = useState([]);
   const [selectedSongDestination, setSelectedSongDestination] = useState('');
+  const [neonMode, setNeonMode] = useState(() => {
+    return localStorage.getItem('neonMode') === 'true';
+  });
 
   const homeRef = useRef(null);
   const destinationsRef = useRef(null);
@@ -48,90 +47,14 @@ const App = () => {
   const favoritesRef = useRef(null);
   const songsRef = useRef(null);
 
-  const destinations = [
-    {
-      id: 'parisModal',
-      title: 'Paris',
-      desc: 'Explore the romantic streets and iconic landmarks of the City of Light.',
-      image: 'https://images.unsplash.com/photo-1499856871958-5b9627545d1a?q=80&w=2020&auto=format&fit=crop',
-      modalTitle: 'Paris Details',
-      modalDesc: 'Paris, known as the City of Light, offers iconic sights like the Eiffel Tower, Louvre Museum, and Seine River cruises. Don\'t miss the charming cafes and world-class cuisine.'
-    },
-    {
-      id: 'romeModal',
-      title: 'Rome',
-      desc: 'Step back in time with ancient ruins and vibrant culture.',
-      image: 'https://images.unsplash.com/photo-1552832230-c0197dd311b5?q=80&w=1994&auto=format&fit=crop',
-      modalTitle: 'Rome Details',
-      modalDesc: 'Rome\'s eternal charm includes the Colosseum, Vatican City, and delicious pasta. Explore hidden gems in the Trastevere neighborhood.'
-    },
-    {
-      id: 'barcelonaModal',
-      title: 'Barcelona',
-      desc: 'Experience the colorful architecture and lively beaches.',
-      image: go,
-      modalTitle: 'Barcelona Details',
-      modalDesc: 'Barcelona boasts Gaudí\'s masterpieces like Sagrada Família and Park Güell, along with vibrant beaches and tapas bars.'
-    },
-    {
-      id: 'londonModal',
-      title: 'London',
-      desc: 'Discover historic landmarks and vibrant culture.',
-      image: zxc,
-      modalTitle: 'London Details',
-      modalDesc: 'London features Big Ben, Buckingham Palace, and diverse neighborhoods. Enjoy afternoon tea and West End shows.'
-    },
-    {
-      id: 'berlinModal',
-      title: 'Berlin',
-      desc: 'Experience rich history and a thriving arts scene.',
-      image: qwe,
-      modalTitle: 'Berlin Details',
-      modalDesc: 'Berlin\'s history shines at the Berlin Wall and Brandenburg Gate, with a thriving arts scene and beer gardens.'
-    },
-    {
-      id: 'athensModal',
-      title: 'Athens',
-      desc: 'Visit ancient ruins and enjoy authentic Greek cuisine.',
-      image: sdfxc,
-      modalTitle: 'Athens Details',
-      modalDesc: 'Athens is home to the Acropolis and Parthenon, with lively plazas and authentic Greek souvlaki.'
-    }
-  ];
+  useEffect(() => {
+    const savedPosts = JSON.parse(localStorage.getItem('posts')) || [];
+    setPosts(savedPosts);
+  }, []);
 
-  // Song recommendations with corrected, valid GIF URLs
-  const songRecommendations = {
-    Paris: [
-      { title: 'La Vie en Rose', artist: 'Édith Piaf', gif: 'https://i.gifer.com/95na.gif' },
-      { title: 'Non, Je Ne Regrette Rien', artist: 'Édith Piaf', gif: 'https://i.gifer.com/95na.gif' },
-      { title: 'Sous le Ciel de Paris', artist: 'Yves Montand', gif: 'https://i.gifer.com/95na.gif' }
-    ],
-    Rome: [
-      { title: 'Volare', artist: 'Domenico Modugno', gif: 'https://media.giphy.com/media/2t9ybdQO3tffbegOuM/giphy.gif' },
-      { title: 'Arrivederci Roma', artist: 'Dean Martin', gif: 'https://media.giphy.com/media/2t9ybdQO3tffbegOuM/giphy.gif' },
-      { title: 'Funiculì Funiculà', artist: 'Traditional', gif: 'https://media.giphy.com/media/2t9ybdQO3tffbegOuM/giphy.gif' }
-    ],
-    Barcelona: [
-      { title: 'Barcelona', artist: 'Freddie Mercury & Montserrat Caballé', gif: 'https://media.giphy.com/media/TH1DuxbRmMquQxDCj3/giphy.gif' },
-      { title: 'Viva La Vida', artist: 'Coldplay', gif: 'https://media.giphy.com/media/TH1DuxbRmMquQxDCj3/giphy.gif' },
-      { title: 'Bamboleo', artist: 'Gipsy Kings', gif: 'https://media.giphy.com/media/TH1DuxbRmMquQxDCj3/giphy.gif' }
-    ],
-    London: [
-      { title: 'London Calling', artist: 'The Clash', gif: 'https://media.giphy.com/media/VEgfqKIEwl1InUdayp/giphy.gif' },
-      { title: 'Waterloo Sunset', artist: 'The Kinks', gif: 'https://media.giphy.com/media/VEgfqKIEwl1InUdayp/giphy.gif' },
-      { title: 'Sweet Caroline', artist: 'Neil Diamond', gif: 'https://media.giphy.com/media/VEgfqKIEwl1InUdayp/giphy.gif' }
-    ],
-    Berlin: [
-      { title: 'Heroes', artist: 'David Bowie', gif: 'https://media.giphy.com/media/2t9ybdQO3tffbegOuM/giphy.gif' },
-      { title: '99 Luftballons', artist: 'Nena', gif: 'https://media.giphy.com/media/2t9ybdQO3tffbegOuM/giphy.gif' },
-      { title: 'Born to Die in Berlin', artist: 'Ramones', gif: 'https://media.giphy.com/media/2t9ybdQO3tffbegOuM/giphy.gif' }
-    ],
-    Athens: [
-      { title: 'Zorba’s Dance', artist: 'Mikis Theodorakis', gif: 'https://i.gifer.com/95na.gif' },
-      { title: 'Never on Sunday', artist: 'Manos Hatzidakis', gif: 'https://i.gifer.com/95na.gif' },
-      { title: 'Siko Horepse Syrtaki', artist: 'Traditional', gif: 'https://i.gifer.com/95na.gif' }
-    ]
-  };
+  useEffect(() => {
+    localStorage.setItem('posts', JSON.stringify(posts));
+  }, [posts]);
 
   useEffect(() => {
     const savedTrips = JSON.parse(localStorage.getItem('travelPlans')) || [];
@@ -153,6 +76,10 @@ const App = () => {
   useEffect(() => {
     localStorage.setItem('selectedSongDestination', selectedSongDestination);
   }, [selectedSongDestination]);
+
+  useEffect(() => {
+    localStorage.setItem('neonMode', neonMode);
+  }, [neonMode]);
 
   const scrollToSection = (ref, id) => {
     if (ref.current) {
@@ -227,6 +154,10 @@ const App = () => {
     );
   };
 
+  const toggleNeonMode = () => {
+    setNeonMode((prev) => !prev);
+  };
+
   const getFavoriteDestinations = () => 
     destinations.filter((dest) => favorites.includes(dest.title));
 
@@ -234,8 +165,92 @@ const App = () => {
     setSelectedSongDestination(e.target.value);
   };
 
+  const destinations = [
+    {
+      id: 'parisModal',
+      title: 'Paris',
+      desc: 'Explore the romantic streets and iconic landmarks of the City of Light.',
+      image: 'https://images.unsplash.com/photo-1499856871958-5b9627545d1a?q=80&w=2020&auto=format&fit=crop',
+      modalTitle: 'Paris Details',
+      modalDesc: 'Paris, known as the City of Light, offers iconic sights like the Eiffel Tower, Louvre Museum, and Seine River cruises. Don\'t miss the charming cafes and world-class cuisine.'
+    },
+    {
+      id: 'romeModal',
+      title: 'Rome',
+      desc: 'Step back in time with ancient ruins and vibrant culture.',
+      image: 'https://images.unsplash.com/photo-1552832230-c0197dd311b5?q=80&w=1994&auto=format&fit=crop',
+      modalTitle: 'Rome Details',
+      modalDesc: 'Rome\'s eternal charm includes the Colosseum, Vatican City, and delicious pasta. Explore hidden gems in the Trastevere neighborhood.'
+    },
+    {
+      id: 'barcelonaModal',
+      title: 'Barcelona',
+      desc: 'Experience the colorful architecture and lively beaches.',
+      image: go,
+      modalTitle: 'Barcelona Details',
+      modalDesc: 'Barcelona boasts Gaudí\'s masterpieces like Sagrada Família and Park Güell, along with vibrant beaches and tapas bars.'
+    },
+    {
+      id: 'londonModal',
+      title: 'London',
+      desc: 'Discover historic landmarks and vibrant culture.',
+      image: zxc,
+      modalTitle: 'London Details',
+      modalDesc: 'London features Big Ben, Buckingham Palace, and diverse neighborhoods. Enjoy afternoon tea and West End shows.'
+    },
+    {
+      id: 'berlinModal',
+      title: 'Berlin',
+      desc: 'Experience rich history and a thriving arts scene.',
+      image: qwe,
+      modalTitle: 'Berlin Details',
+      modalDesc: 'Berlin\'s history shines at the Berlin Wall and Brandenburg Gate, with a thriving arts scene and beer gardens.'
+    },
+    {
+      id: 'athensModal',
+      title: 'Athens',
+      desc: 'Visit ancient ruins and enjoy authentic Greek cuisine.',
+      image: sdfxc,
+      modalTitle: 'Athens Details',
+      modalDesc: 'Athens is home to the Acropolis and Parthenon, with lively plazas and authentic Greek souvlaki.'
+    }
+  ];
+
+  const songRecommendations = {
+    Paris: [
+      { title: 'La Vie en Rose', artist: 'Édith Piaf', gif: 'https://makeagif.com/i/a2DgG2' },
+      { title: 'Non, Je Ne Regrette Rien', artist: 'Édith Piaf', gif: 'https://tenor.com/view/marion-cotillard-edith-piaf-je-ne-regrette-rien-aucuns-regrets-gif-13090151.gif' },
+      { title: 'Sous le Ciel de Paris', artist: 'Yves Montand', gif: 'https://i.gifer.com/95na.gif' }
+    ],
+    Rome: [
+      { title: 'Volare', artist: 'Domenico Modugno', gif: 'https://media.giphy.com/media/2t9ybdQO3tffbegOuM/giphy.gif' },
+      { title: 'Arrivederci Roma', artist: 'Dean Martin', gif: 'https://tenor.com/view/dean-martin-gif-22307648.gif' },
+      { title: 'Funiculì Funiculà', artist: 'Traditional', gif: 'https://tenor.com/view/99-luftballons-nena-gif-13883846.gif' }
+    ],
+    Barcelona: [
+      { title: 'Barcelona', artist: 'Freddie Mercury & Montserrat Caballé', gif: 'https://gifs.com/gif/barcelona-live-freddie-mercury-montserrat-caballe-1988-yNjbq7.gif' },
+      { title: 'Viva La Vida', artist: 'Coldplay', gif: 'https://tenor.com/view/viva-la-vida-coldplay-france-jamcat-catjam-gif-15454284758777349905.gif' },
+      { title: 'Bamboleo', artist: 'Gipsy Kings', gif: 'https://makeagif.com/i/srlwA1.gif' }
+    ],
+    London: [
+      { title: 'London Calling', artist: 'The Clash', gif: 'https://makeagif.com/i/xn7A-y.gif' },
+      { title: 'Waterloo Sunset', artist: 'The Kinks', gif: 'https://media.giphy.com/media/VEgfqKIEwl1InUdayp/giphy.gif' },
+      { title: 'Sweet Caroline', artist: 'Neil Diamond', gif: 'https://tenor.com/view/sweet-caroline-neil-diamond-sweet-caroline-song-oh-my-darling-caroline-my-beloved-caroline-gif-19540818.gif' }
+    ],
+    Berlin: [
+      { title: 'Heroes', artist: 'David Bowie', gif: 'https://tenor.com/view/david-bowie-we-can-be-heroes-hero-heroes-gif-4921430.gif' },
+      { title: '99 Luftballons', artist: 'Nena', gif: 'https://tenor.com/view/99luftballons-nena-neun-und-neunzig-99red-balloons-ninety-nine-gif-16353538.gif' },
+      { title: 'Born to Die in Berlin', artist: 'Ramones', gif: 'https://media.giphy.com/media/2t9ybdQO3tffbegOuM/giphy.gif' }
+    ],
+    Athens: [
+      { title: 'Zorba’s Dance', artist: 'Mikis Theodorakis', gif: 'https://i.gifer.com/95na.gif' },
+      { title: 'Never on Sunday', artist: 'Manos Hatzidakis', gif: 'https://i.gifer.com/95na.gif' },
+      { title: 'Siko Horepse Syrtaki', artist: 'Traditional', gif: 'https://i.gifer.com/95na.gif' }
+    ]
+  };
+
   return (
-    <div>
+    <div className={neonMode ? 'neon-mode' : ''}>
       <header>
         <img src={logo} alt="Travel Vista Logo" className="logo" />
         <nav>
@@ -248,7 +263,15 @@ const App = () => {
           <a className={activeNav === 'planner' ? 'active' : ''} onClick={() => scrollToSection(plannerRef, 'planner')} aria-label="Travel Planner">Travel Planner</a>
           <a className={activeNav === 'songs' ? 'active' : ''} onClick={() => scrollToSection(songsRef, 'songs')} aria-label="Song Recommendations">Songs</a>
         </nav>
+        <button
+          className={`mode-toggle-btn ${neonMode ? 'neon-active' : ''}`}
+          onClick={toggleNeonMode}
+          aria-label={neonMode ? 'Switch to default mode' : 'Switch to neon mode'}
+        >
+          {neonMode ? '☀️' : '🌙'}
+        </button>
       </header>
+      
       <section className="hero" ref={homeRef}>
         <h2>Discover Your Next Adventure</h2>
       </section>
@@ -266,15 +289,7 @@ const App = () => {
                 {favorites.includes(dest.title) ? '❤️ Remove Favorite' : '♡ Add to Favorites'}
               </button>
             </div>
-            <h3>{dest.title}</h3>
             <p>{dest.desc}</p>
-            <button
-              onClick={() => toggleFavorite(dest.title)}
-              className={`favorite-btn ${favorites.includes(dest.title) ? 'favorited' : ''}`}
-              aria-label={favorites.includes(dest.title) ? `Remove ${dest.title} from favorites` : `Add ${dest.title} to favorites`}
-            >
-              {favorites.includes(dest.title) ? '❤️ Remove Favorite' : '♡ Add to Favorites'}
-            </button>
           </div>
         ))}
       </section>
@@ -307,15 +322,7 @@ const App = () => {
                     ❤️ Remove Favorite
                   </button>
                 </div>
-                <h3>{dest.title}</h3>
                 <p>{dest.desc}</p>
-                <button
-                  onClick={() => toggleFavorite(dest.title)}
-                  className="favorite-btn favorited"
-                  aria-label={`Remove ${dest.title} from favorites`}
-                >
-                  ❤️ Remove Favorite
-                </button>
               </div>
             ))}
           </div>
