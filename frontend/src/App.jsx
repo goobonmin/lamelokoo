@@ -37,6 +37,8 @@ const App = () => {
   const [neonMode, setNeonMode] = useState(() => {
     return localStorage.getItem('neonMode') === 'true';
   });
+  const [isFlashing, setIsFlashing] = useState(false);
+  const [showLightning, setShowLightning] = useState(false);
 
   const homeRef = useRef(null);
   const destinationsRef = useRef(null);
@@ -165,6 +167,14 @@ const App = () => {
     setSelectedSongDestination(e.target.value);
   };
 
+  const handleLogoClick = () => {
+    setIsFlashing(true);
+  };
+
+  const handleLogoDoubleClick = () => {
+    setShowLightning(true);
+  };
+
   const destinations = [
     {
       id: 'parisModal',
@@ -251,8 +261,32 @@ const App = () => {
 
   return (
     <div className={neonMode ? 'neon-mode' : ''}>
+      <style>
+        {`
+          @keyframes flash {
+            0% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(1.5); opacity: 0.7; }
+            100% { transform: scale(1); opacity: 0; }
+          }
+          @keyframes lightning {
+            0% { opacity: 0; transform: scale(1); }
+            10% { opacity: 1; transform: scale(1.2); }
+            20% { opacity: 0; transform: scale(1); }
+            30% { opacity: 1; transform: scale(1.1); }
+            40% { opacity: 0; transform: scale(1); }
+            100% { opacity: 0; transform: scale(1); }
+          }
+        `}
+      </style>
       <header>
-        <img src={logo} alt="Travel Vista Logo" className="logo" />
+        <img 
+          src={logo} 
+          alt="Travel Vista Logo" 
+          className="logo" 
+          onClick={handleLogoClick}
+          onDoubleClick={handleLogoDoubleClick}
+          style={{ cursor: 'pointer' }}
+        />
         <nav>
           <a className={activeNav === 'home' ? 'active' : ''} onClick={() => scrollToSection(homeRef, 'home')} aria-label="Home">Home</a>
           <a className={activeNav === 'destinations' ? 'active' : ''} onClick={() => scrollToSection(destinationsRef, 'destinations')} aria-label="Destinations">Destinations</a>
@@ -520,6 +554,26 @@ const App = () => {
         <div className="enlarged-image" onClick={closeEnlargedImage}>
           <img src={enlargedImage} alt="Enlarged" />
           <span className="close" onClick={closeEnlargedImage}>&times;</span>
+        </div>
+      )}
+      {isFlashing && (
+        <div style={{ position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh', display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 9999, pointerEvents: 'none', background: 'rgba(255, 255, 255, 0.3)' }}>
+          <span 
+            style={{ fontSize: '200px', color: 'gold', textShadow: '0 0 20px orange', animation: 'flash 0.5s ease-in-out' }} 
+            onAnimationEnd={() => setIsFlashing(false)}
+          >
+            ☀️
+          </span>
+        </div>
+      )}
+      {showLightning && (
+        <div style={{ position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh', display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 10000, pointerEvents: 'none', background: 'rgba(0, 0, 0, 0.3)' }}>
+          <span 
+            style={{ fontSize: '300px', color: 'white', textShadow: '0 0 30px yellow, 0 0 60px yellow', animation: 'lightning 1s ease-in-out' }} 
+            onAnimationEnd={() => setShowLightning(false)}
+          >
+            ⚡
+          </span>
         </div>
       )}
     </div>
